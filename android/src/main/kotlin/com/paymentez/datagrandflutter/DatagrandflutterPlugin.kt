@@ -1,5 +1,7 @@
 package com.paymentez.datagrandflutter
 
+import android.app.Activity
+import android.app.PendingIntent.getActivity
 import android.content.Context
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -9,10 +11,12 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import io.datagran.sdk.android.pixel.Tracker
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 
 /** DatagrandflutterPlugin */
-public class DatagrandflutterPlugin: FlutterPlugin, MethodCallHandler {
+public class DatagrandflutterPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -36,6 +40,7 @@ public class DatagrandflutterPlugin: FlutterPlugin, MethodCallHandler {
   // in the same class.
   companion object {
     private lateinit var context: Context
+    private lateinit var activity: Activity
 
     @JvmStatic
     fun registerWith(registrar: Registrar) {
@@ -58,7 +63,7 @@ public class DatagrandflutterPlugin: FlutterPlugin, MethodCallHandler {
     val arguments = call.arguments as Map<*, *>
     val appId = arguments["appId"] as String?
     Tracker.init(context, true, appId, 1)
-    Tracker.singleton().setActivityContext(context)
+    Tracker.singleton().setActivityContext(activity)
     result.success(null)
   }
 
@@ -72,5 +77,13 @@ public class DatagrandflutterPlugin: FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+  }
+
+  override fun onReattachedToActivityForConfigChanges(p0: ActivityPluginBinding) {
+    activity = p0.activity
+  }
+
+  override fun onAttachedToActivity(p0: ActivityPluginBinding) {
+    activity = p0.activity
   }
 }
